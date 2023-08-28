@@ -100,7 +100,7 @@ class ChatViewProvider {
             localResourceRoots: [this._extensionUri],
         };
         webviewView.webview.html = getChatboxHtml(this._extensionUri);
-        webviewView.webview.onDidReceiveMessage(message => {
+        webviewView.webview.onDidReceiveMessage((message) => {
             switch (message.command) {
                 case "sendMessage":
                     // 给 webview 发送信息
@@ -109,6 +109,25 @@ class ChatViewProvider {
         });
     }
 }
+// const panel = vscode.window.createWebviewPanel(
+//   "sidebar_test_id1", // 唯一标识符
+//   "第一小组插件作业",
+//   vscode.ViewColumn.Seven, // WebView 的显示位置
+//   {
+//     enableScripts: true, // 允许执行 JavaScript
+//   }
+// );
+// panel.webview.html = "<div>testtest</div>";
+vscode.window.registerWebviewViewProvider("sidebar_test_id1", {
+    resolveWebviewView: (webviewView, context) => {
+        // 在这里设置自定义视图的 HTML 内容、事件处理等
+        webviewView.webview.html = "<h1>Hello from Webview!</h1>";
+    },
+}, {
+    webviewOptions: {
+        retainContextWhenHidden: true,
+    },
+});
 
 })();
 

@@ -9,11 +9,26 @@
   "categories": [
     "Other"
   ],
-  "activationEvents": [
-  ],
+  "activationEvents": [],
   "main": "./dist/extension.js",
   "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "sidebar_test",
+          "title": "侧边栏测试",
+          "icon": "通知.svg"
+        }
+      ]
+    },
     "views": {
+      "sidebar_test": [
+        {
+          "id": "sidebar_test_id1",
+          "name": "面板区块名称1",
+          "type": "webview"
+        }
+      ],
       "explorer": [
         {
           "id": "yourCustomViewId",
