@@ -63,7 +63,12 @@ export function activate(context: vscode.ExtensionContext) {
 
   // 这部分代码调用没有问题，但是本地跑起来加载不出来 webview，需要看下
   const chatViewProvider = new ChatViewProvider(context.extensionUri);
-  context.subscriptions.push(vscode.window.registerWebviewViewProvider("yourCustomViewId", chatViewProvider));
+  context.subscriptions.push(
+    vscode.window.registerWebviewViewProvider(
+      "yourCustomViewId",
+      chatViewProvider
+    )
+  );
 }
 
 class ChatViewProvider implements vscode.WebviewViewProvider {
@@ -76,7 +81,7 @@ class ChatViewProvider implements vscode.WebviewViewProvider {
     };
     webviewView.webview.html = getChatboxHtml(this._extensionUri);
 
-    webviewView.webview.onDidReceiveMessage(message => {
+    webviewView.webview.onDidReceiveMessage((message) => {
       switch (message.command) {
         case "sendMessage":
           // 给 webview 发送信息
@@ -85,3 +90,28 @@ class ChatViewProvider implements vscode.WebviewViewProvider {
     });
   }
 }
+
+// const panel = vscode.window.createWebviewPanel(
+//   "sidebar_test_id1", // 唯一标识符
+//   "第一小组插件作业",
+//   vscode.ViewColumn.Seven, // WebView 的显示位置
+//   {
+//     enableScripts: true, // 允许执行 JavaScript
+//   }
+// );
+// panel.webview.html = "<div>testtest</div>";
+
+vscode.window.registerWebviewViewProvider(
+  "sidebar_test_id1",
+  {
+    resolveWebviewView: (webviewView, context) => {
+      // 在这里设置自定义视图的 HTML 内容、事件处理等
+      webviewView.webview.html = "<h1>Hello from Webview!</h1>";
+    },
+  },
+  {
+    webviewOptions: {
+      retainContextWhenHidden: true,
+    },
+  }
+);
