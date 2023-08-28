@@ -1,10 +1,25 @@
 import * as vscode from "vscode";
+import { languageMap, TLanguage } from "./constants";
+
+export function findLanguageByExtension(extensionName: string): TLanguage | undefined {
+  for (const language in languageMap) {
+    if (languageMap[language as TLanguage].includes(extensionName)) {
+      return language as TLanguage;
+    }
+  }
+  return undefined;
+}
 
 function getSelectedText(): string | undefined {
   const editor = vscode.window.activeTextEditor;
   if (!editor) {
     return undefined;
   }
+  const document = editor.document;
+  const fileName = document.fileName;
+  // 文件拓展名
+  const extensionName = fileName.split(".").pop();
+  console.log(findLanguageByExtension(extensionName || ""));
   const selection = editor.selection;
   return editor.document.getText(selection);
 }
@@ -42,6 +57,7 @@ export function activate(context: vscode.ExtensionContext) {
   let disposable = vscode.commands.registerCommand("feedContent", () => {
     // 选中文字内容
     const selectedText = getSelectedText();
+    console.log(selectedText);
   });
   context.subscriptions.push(disposable);
 
