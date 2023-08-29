@@ -1,11 +1,154 @@
 /******/ (() => { // webpackBootstrap
 /******/ 	"use strict";
 /******/ 	var __webpack_modules__ = ([
-/* 0 */,
+/* 0 */
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.activate = exports.findLanguageByExtension = void 0;
+const vscode = __importStar(__webpack_require__(1));
+const constants_1 = __webpack_require__(2);
+const path_1 = __importDefault(__webpack_require__(3));
+function findLanguageByExtension(extensionName) {
+    for (const language in constants_1.languageMap) {
+        if (constants_1.languageMap[language].includes(extensionName)) {
+            return language;
+        }
+    }
+    return undefined;
+}
+exports.findLanguageByExtension = findLanguageByExtension;
+function getSelectedText() {
+    const editor = vscode.window.activeTextEditor;
+    if (!editor) {
+        return undefined;
+    }
+    const document = editor.document;
+    const fileName = document.fileName;
+    // 文件拓展名
+    const extensionName = fileName.split(".").pop();
+    console.log(findLanguageByExtension(extensionName || ""));
+    const selection = editor.selection;
+    return editor.document.getText(selection);
+}
+function getWebviewContent(srcUri) {
+    return `<!doctype html>
+  <html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>webview-react</title>
+    <script defer="defer" src="${srcUri}"></script>
+  </head>
+  <body>
+    <div id="root"></div>
+  </body>
+  </html>`;
+}
+function activate(context) {
+    let disposable = vscode.commands.registerCommand("feedContent", () => {
+        // 选中文字内容
+        const selectedText = getSelectedText();
+        console.log(selectedText);
+    });
+    context.subscriptions.push(disposable);
+    const isProduction = context.extensionMode === vscode.ExtensionMode.Production;
+    let srcUrl = "";
+    vscode.window.registerWebviewViewProvider("sidebar_test_id1", {
+        resolveWebviewView: (panel) => {
+            panel.webview.options = { enableScripts: true };
+            if (isProduction) {
+                const filePath = vscode.Uri.file(path_1.default.join(context.extensionPath, "dist", "static/js/main.js"));
+                srcUrl = panel.webview.asWebviewUri(filePath).toString();
+            }
+            else {
+                5;
+                srcUrl = "http://localhost:3000/static/js/main.js";
+            }
+            panel.webview.html = getWebviewContent(srcUrl);
+            const updateWebview = () => {
+                panel.webview.html = getWebviewContent(srcUrl);
+            };
+            updateWebview();
+            const interval = setInterval(updateWebview, 1000);
+            panel.onDidDispose(() => {
+                clearInterval(interval);
+            }, null, context.subscriptions);
+        },
+    }, {
+        webviewOptions: {
+            retainContextWhenHidden: true,
+        },
+    });
+}
+exports.activate = activate;
+
+
+/***/ }),
 /* 1 */
 /***/ ((module) => {
 
 module.exports = require("vscode");
+
+/***/ }),
+/* 2 */
+/***/ ((__unused_webpack_module, exports) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.languageMap = exports.languages = void 0;
+exports.languages = {
+    react: "react",
+    vue: "vue",
+    java: "java",
+    javascript: "javascript",
+    swift: "swift",
+    objectivec: "objectivec",
+};
+// 代码语言映射
+exports.languageMap = {
+    react: ["jsx", "tsx"],
+    vue: ["vue"],
+    java: ["java"],
+    javascript: ["ts", "js"],
+    swift: ["swift"],
+    objectivec: ["m", "mm", "h"],
+};
+
+
+/***/ }),
+/* 3 */
+/***/ ((module) => {
+
+module.exports = require("path");
 
 /***/ })
 /******/ 	]);
@@ -28,110 +171,20 @@ module.exports = require("vscode");
 /******/ 		};
 /******/ 	
 /******/ 		// Execute the module function
-/******/ 		__webpack_modules__[moduleId](module, module.exports, __webpack_require__);
+/******/ 		__webpack_modules__[moduleId].call(module.exports, module, module.exports, __webpack_require__);
 /******/ 	
 /******/ 		// Return the exports of the module
 /******/ 		return module.exports;
 /******/ 	}
 /******/ 	
 /************************************************************************/
-var __webpack_exports__ = {};
-// This entry need to be wrapped in an IIFE because it need to be isolated against other modules in the chunk.
-(() => {
-var exports = __webpack_exports__;
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.activate = void 0;
-const vscode = __webpack_require__(1);
-function getSelectedText() {
-    const editor = vscode.window.activeTextEditor;
-    if (!editor) {
-        return undefined;
-    }
-    const selection = editor.selection;
-    return editor.document.getText(selection);
-}
-/**
- * webview 内容显示 demo
- * @param extensionUri
- * @returns
- */
-function getChatboxHtml(extensionUri) {
-    return `
-    <html>
-        <head></head>
-        <body>
-            <div id="chatbox"></div>
-            <textarea id="inputMessage"></textarea>
-            <button id="sendMessage">Send</button>
-
-            <script>
-                const vscode = acquireVsCodeApi();
-                document.getElementById('sendMessage').addEventListener('click', () => {
-                    const message = document.getElementById('inputMessage').value;
-                    vscode.postMessage({
-                        command: 'sendMessage',
-                        text: message
-                    });
-                });
-            </script>
-        </body>
-    </html>
-    `;
-}
-function activate(context) {
-    let disposable = vscode.commands.registerCommand("feedContent", () => {
-        // 选中文字内容
-        const selectedText = getSelectedText();
-    });
-    context.subscriptions.push(disposable);
-    // 这部分代码调用没有问题，但是本地跑起来加载不出来 webview，需要看下
-    const chatViewProvider = new ChatViewProvider(context.extensionUri);
-    context.subscriptions.push(vscode.window.registerWebviewViewProvider("yourCustomViewId", chatViewProvider));
-}
-exports.activate = activate;
-class ChatViewProvider {
-    constructor(_extensionUri) {
-        this._extensionUri = _extensionUri;
-    }
-    resolveWebviewView(webviewView) {
-        webviewView.webview.options = {
-            enableScripts: true,
-            localResourceRoots: [this._extensionUri],
-        };
-        webviewView.webview.html = getChatboxHtml(this._extensionUri);
-        webviewView.webview.onDidReceiveMessage((message) => {
-            switch (message.command) {
-                case "sendMessage":
-                    // 给 webview 发送信息
-                    break;
-            }
-        });
-    }
-}
-// const panel = vscode.window.createWebviewPanel(
-//   "sidebar_test_id1", // 唯一标识符
-//   "第一小组插件作业",
-//   vscode.ViewColumn.Seven, // WebView 的显示位置
-//   {
-//     enableScripts: true, // 允许执行 JavaScript
-//   }
-// );
-// panel.webview.html = "<div>testtest</div>";
-vscode.window.registerWebviewViewProvider("sidebar_test_id1", {
-    resolveWebviewView: (webviewView, context) => {
-        // 在这里设置自定义视图的 HTML 内容、事件处理等
-        webviewView.webview.html = "<h1>Hello from Webview!</h1>";
-    },
-}, {
-    webviewOptions: {
-        retainContextWhenHidden: true,
-    },
-});
-
-})();
-
-module.exports = __webpack_exports__;
+/******/ 	
+/******/ 	// startup
+/******/ 	// Load entry module and return exports
+/******/ 	// This entry module is referenced by other modules so it can't be inlined
+/******/ 	var __webpack_exports__ = __webpack_require__(0);
+/******/ 	module.exports = __webpack_exports__;
+/******/ 	
 /******/ })()
 ;
 //# sourceMappingURL=extension.js.map

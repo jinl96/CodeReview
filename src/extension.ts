@@ -1,9 +1,12 @@
 import * as vscode from "vscode";
 import { languageMap, TLanguage } from "./constants";
+import path from "path";
 // @ts-ignore
 const API = require("./server/server.js");
 
-export function findLanguageByExtension(extensionName: string): TLanguage | undefined {
+export function findLanguageByExtension(
+  extensionName: string
+): TLanguage | undefined {
   for (const language in languageMap) {
     if (languageMap[language as TLanguage].includes(extensionName)) {
       return language as TLanguage;
@@ -34,33 +37,20 @@ function getSelectedText():
   };
 }
 
-/**
- * webview 内容显示 demo
- * @param extensionUri
- * @returns
- */
-function getChatboxHtml(extensionUri: vscode.Uri): string {
-  return `
-    <html>
-        <head></head>
-        <body>
-            <div id="chatbox"></div>
-            <textarea id="inputMessage"></textarea>
-            <button id="sendMessage">Send</button>
-
-            <script>
-                const vscode = acquireVsCodeApi();
-                document.getElementById('sendMessage').addEventListener('click', () => {
-                    const message = document.getElementById('inputMessage').value;
-                    vscode.postMessage({
-                        command: 'sendMessage',
-                        text: message
-                    });
-                });
-            </script>
-        </body>
-    </html>
-    `;
+function getWebviewContent(srcUri: string) {
+  return `<!doctype html>
+  <html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>webview-react</title>
+    <script defer="defer" src="${srcUri}"></script>
+  </head>
+  <body>
+    <div id="root"></div>
+  </body>
+  </html>`;
 }
 
 export function activate(context: vscode.ExtensionContext) {
@@ -80,29 +70,46 @@ export function activate(context: vscode.ExtensionContext) {
   });
   context.subscriptions.push(disposable);
 
-  // 这部分代码调用没有问题，但是本地跑起来加载不出来 webview，需要看下
-  const chatViewProvider = new ChatViewProvider(context.extensionUri);
-  context.subscriptions.push(vscode.window.registerWebviewViewProvider("yourCustomViewId", chatViewProvider));
-}
+  const isProduction =
+    context.extensionMode === vscode.ExtensionMode.Production;
+  let srcUrl = "";
+  vscode.window.registerWebviewViewProvider(
+    "sidebar_test_id1",
+    {
+      resolveWebviewView: (panel) => {
+        panel.webview.options = { enableScripts: true };
+        if (isProduction) {
+          const filePath = vscode.Uri.file(
+            path.join(context.extensionPath, "dist", "static/js/main.js")
+          );
+          srcUrl = panel.webview.asWebviewUri(filePath).toString();
+        } else {
+          5;
+          srcUrl = "http://localhost:3000/static/js/main.js";
+        }
+        panel.webview.html = getWebviewContent(srcUrl);
+        const updateWebview = () => {
+          panel.webview.html = getWebviewContent(srcUrl);
+        };
+        updateWebview();
+        const interval = setInterval(updateWebview, 1000);
 
-class ChatViewProvider implements vscode.WebviewViewProvider {
-  constructor(private readonly _extensionUri: vscode.Uri) {}
+        panel.onDidDispose(
+          () => {
+            clearInterval(interval);
+          },
+          null,
+          context.subscriptions
+        );
+      },
+    },
+    {
+      webviewOptions: {
+        retainContextWhenHidden: true,
+      },
+    }
+  );
 
-  resolveWebviewView(webviewView: vscode.WebviewView) {
-    webviewView.webview.options = {
-      enableScripts: true,
-      localResourceRoots: [this._extensionUri],
-    };
-    webviewView.webview.html = getChatboxHtml(this._extensionUri);
-
-    webviewView.webview.onDidReceiveMessage(message => {
-      switch (message.command) {
-        case "sendMessage":
-          // 给 webview 发送信息
-          break;
-      }
-    });
-  }
 }
 
 // const panel = vscode.window.createWebviewPanel(
