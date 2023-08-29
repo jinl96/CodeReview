@@ -1,5 +1,7 @@
 import * as vscode from "vscode";
 import { languageMap, TLanguage } from "./constants";
+// @ts-ignore
+const API = require("./server/server.js");
 
 export function findLanguageByExtension(extensionName: string): TLanguage | undefined {
   for (const language in languageMap) {
@@ -10,7 +12,12 @@ export function findLanguageByExtension(extensionName: string): TLanguage | unde
   return undefined;
 }
 
-function getSelectedText(): string | undefined {
+function getSelectedText():
+  | {
+      content: string;
+      language: TLanguage | undefined;
+    }
+  | undefined {
   const editor = vscode.window.activeTextEditor;
   if (!editor) {
     return undefined;
@@ -19,9 +26,12 @@ function getSelectedText(): string | undefined {
   const fileName = document.fileName;
   // 文件拓展名
   const extensionName = fileName.split(".").pop();
-  console.log(findLanguageByExtension(extensionName || ""));
+  const language = findLanguageByExtension(extensionName || "");
   const selection = editor.selection;
-  return editor.document.getText(selection);
+  return {
+    content: editor.document.getText(selection),
+    language,
+  };
 }
 
 /**
@@ -57,18 +67,22 @@ export function activate(context: vscode.ExtensionContext) {
   let disposable = vscode.commands.registerCommand("feedContent", () => {
     // 选中文字内容
     const selectedText = getSelectedText();
-    console.log(selectedText);
+    console.log("发送代码内容:", selectedText?.content);
+    console.log("代码语言为:", selectedText?.language);
+    console.log("等待回复中....");
+    API(selectedText?.language, selectedText?.content)
+      .then(res => {
+        console.log(res);
+      })
+      .catch(err => {
+        console.log(err);
+      });
   });
   context.subscriptions.push(disposable);
 
   // 这部分代码调用没有问题，但是本地跑起来加载不出来 webview，需要看下
   const chatViewProvider = new ChatViewProvider(context.extensionUri);
-  context.subscriptions.push(
-    vscode.window.registerWebviewViewProvider(
-      "yourCustomViewId",
-      chatViewProvider
-    )
-  );
+  context.subscriptions.push(vscode.window.registerWebviewViewProvider("yourCustomViewId", chatViewProvider));
 }
 
 class ChatViewProvider implements vscode.WebviewViewProvider {
@@ -81,7 +95,7 @@ class ChatViewProvider implements vscode.WebviewViewProvider {
     };
     webviewView.webview.html = getChatboxHtml(this._extensionUri);
 
-    webviewView.webview.onDidReceiveMessage((message) => {
+    webviewView.webview.onDidReceiveMessage(message => {
       switch (message.command) {
         case "sendMessage":
           // 给 webview 发送信息
