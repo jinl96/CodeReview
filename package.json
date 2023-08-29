@@ -81,6 +81,7 @@
     "glob": "^10.3.3",
     "html-webpack-plugin": "^5.5.3",
     "mocha": "^10.2.0",
+    "sass": "^1.66.1",
     "ts-loader": "^9.4.4",
     "typescript": "^5.1.6",
     "webpack": "^5.88.2",
@@ -89,6 +90,7 @@
     "webpack-merge": "^5.9.0"
   },
   "dependencies": {
+    "antd": "^5.8.5",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   }
