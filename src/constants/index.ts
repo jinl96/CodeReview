@@ -1,10 +1,12 @@
 export const languages = {
   react: "react",
   vue: "vue",
-  java: "java",
   javascript: "javascript",
+  ios: "ios",
+  kotlin: "kotlin",
+  java: "java",
+  oc: "oc",
   swift: "swift",
-  objectivec: "objectivec",
 } as const;
 
 export type TLanguage = keyof typeof languages;
@@ -13,8 +15,10 @@ export type TLanguage = keyof typeof languages;
 export const languageMap: { [key in TLanguage]: string[] } = {
   react: ["jsx", "tsx"],
   vue: ["vue"],
-  java: ["java"],
-  javascript: ["ts", "js"],
+  java: ["java", "kt"],
+  oc: ["m", "mm", "h"],
+  kotlin: ["kts", "ktm"],
   swift: ["swift"],
-  objectivec: ["m", "mm", "h"],
+  javascript: ["ts", "js"],
+  ios: ["swift", "m", "mm", "h"],
 };

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { DatePicker } from "antd";
 import { Dropdown, Space, Button, Card } from "antd";
 import { items } from "./metadata/menu";
+import { languages, TLanguage } from "../constants";
 
 const App: React.FC = () => {
   const [cards, setCards] = useState<{ title: string; content: string }[]>([
@@ -11,13 +12,23 @@ const App: React.FC = () => {
     },
   ]);
 
+  const [tech, setTech] = useState<TLanguage | null>(null);
+
   useEffect(() => {
     window.addEventListener("message", event => {
       const message = event.data; // The JSON data our extension sent
-      if (message.type === "code") {
-        setCards(item => [{ title: `Language Detected: ${message.data.language}`, content: message.data.content }]);
-      } else if (message.type === 'response') {
-        setCards(item => [...item, {title: 'Response', content:message.data.content}])
+      switch (message.type) {
+        case "code":
+          setCards(item => [{ title: `Language Detected: ${message.data.language}`, content: message.data.content }]);
+          break;
+        case "response":
+          setCards(item => [...item, { title: "Response", content: message.data.content }]);
+          break;
+        case "selection":
+          setTech(message.data.tech);
+        default:
+          // do nothing
+          break;
       }
     });
   }, []);
@@ -43,7 +54,7 @@ const App: React.FC = () => {
         >
           <Dropdown menu={{ items }}>
             <a onClick={e => e.preventDefault()}>
-              <Space>选择具体语言</Space>
+              <Space>{!tech ? "选择具体语言" : tech}</Space>
             </a>
           </Dropdown>
           <Button>分析当前所在文件</Button>

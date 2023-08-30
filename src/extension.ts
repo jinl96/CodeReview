@@ -27,7 +27,8 @@ function getSelectedText():
   const fileName = document.fileName;
   // 文件拓展名
   const extensionName = fileName.split(".").pop();
-  const language = findLanguageByExtension(extensionName || "");
+  let language: TLanguage | undefined;
+  language = findLanguageByExtension(extensionName || "");
   const selection = editor.selection;
   return {
     content: editor.document.getText(selection),
@@ -50,6 +51,18 @@ function getWebviewContent(srcUri: string) {
   </body>
   </html>`;
 }
+
+function sendSelectionMsg(language: TLanguage | undefined) {
+  if (currentWebviewPanel) {
+    currentWebviewPanel.webview.postMessage({
+      type: "selection",
+      data: {
+        tech: language,
+      },
+    });
+  }
+}
+
 let currentWebviewPanel: vscode.WebviewView | undefined;
 
 export function activate(context: vscode.ExtensionContext) {
@@ -91,6 +104,27 @@ export function activate(context: vscode.ExtensionContext) {
     }
   );
 
+  function getFileContent():
+    | {
+        content: string;
+        language: TLanguage | undefined;
+      }
+    | undefined {
+    const editor = vscode.window.activeTextEditor;
+    if (!editor) {
+      return undefined;
+    }
+    const document = editor.document;
+    const fileName = document.fileName;
+    // 文件拓展名 (file extension)
+    const extensionName = fileName.split(".").pop();
+    const language = findLanguageByExtension(extensionName || "");
+    return {
+      content: document.getText(),
+      language,
+    };
+  }
+
   let disposable = vscode.commands.registerCommand("feedContent", () => {
     // 选中文字内容
     const selectedText = getSelectedText();
@@ -98,7 +132,7 @@ export function activate(context: vscode.ExtensionContext) {
     console.log("代码语言为:", selectedText?.language);
     console.log("等待回复中....");
     // 自动跳转到 webview，后面的 id 后续要随 webview 名称修改
-    vscode.commands.executeCommand('workbench.view.extension.sidebar_test');
+    vscode.commands.executeCommand("workbench.view.extension.sidebar_test");
     // 给 webview 发送代码片段信息
     if (currentWebviewPanel) {
       currentWebviewPanel.webview.postMessage({
@@ -108,9 +142,10 @@ export function activate(context: vscode.ExtensionContext) {
           language: selectedText?.language,
         },
       });
+      sendSelectionMsg(selectedText?.language)
     }
     API(selectedText?.language, selectedText?.content)
-      .then((res:any) => {
+      .then((res: any) => {
         if (currentWebviewPanel) {
           // 给 webview 发送 gpt api 返回信息
           currentWebviewPanel.webview.postMessage({
@@ -125,5 +160,38 @@ export function activate(context: vscode.ExtensionContext) {
         console.log(err);
       });
   });
+
+  const feedFile = vscode.commands.registerCommand("feedFile", () => {
+    const selectedText = getFileContent();
+    vscode.commands.executeCommand("workbench.view.extension.sidebar_test");
+    // 给 webview 发送代码片段信息
+    if (currentWebviewPanel) {
+      currentWebviewPanel.webview.postMessage({
+        type: "code",
+        data: {
+          content: selectedText?.content,
+          language: selectedText?.language,
+        },
+      });
+    }
+    API(selectedText?.language, selectedText?.content)
+      .then((res: any) => {
+        if (currentWebviewPanel) {
+          // 给 webview 发送 gpt api 返回信息
+          currentWebviewPanel.webview.postMessage({
+            type: "response",
+            data: {
+              content: res,
+            },
+          });
+          sendSelectionMsg(selectedText?.language);
+        }
+      })
+      .catch(err => {
+        console.log(err);
+      });
+  });
+
   context.subscriptions.push(disposable);
+  context.subscriptions.push(feedFile);
 }
