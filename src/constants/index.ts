@@ -1,7 +1,7 @@
 export const languages = {
   react: "react",
   vue: "vue",
-  javascript: "javascript",
+  js: "js",
   ios: "ios",
   kotlin: "kotlin",
   java: "java",
@@ -19,6 +19,16 @@ export const languageMap: { [key in TLanguage]: string[] } = {
   oc: ["m", "mm", "h"],
   kotlin: ["kts", "ktm"],
   swift: ["swift"],
-  javascript: ["ts", "js"],
+  js: ["ts", "js"],
   ios: ["swift", "m", "mm", "h"],
 };
+
+export const reactJSXKeywords = [
+  'react',
+  'React',
+  'className',
+  'useState',
+  'useEffect'
+]
+
+export const frontendCommonExt = ['jsx','tsx'];

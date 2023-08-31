@@ -2,7 +2,7 @@
   "name": "hicodereview",
   "displayName": "HiCr",
   "description": "hw",
-  "version": "0.0.1",
+  "version": "0.0.3",
   "engines": {
     "vscode": "^1.81.0"
   },
@@ -27,12 +27,6 @@
           "id": "sidebar_test_id1",
           "name": "面板区块名称1",
           "type": "webview"
-        }
-      ],
-      "explorer": [
-        {
-          "id": "yourCustomViewId",
-          "name": "ChatBox"
         }
       ]
     },
